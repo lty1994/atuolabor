@@ -1,0 +1,8 @@
+prefix=/home/lty/catkin_ws/install
+
+Name: autolabor_box_launch
+Description: Description of autolabor_box_launch
+Version: 0.0.0
+Cflags: 
+Libs: -L/home/lty/catkin_ws/install/lib 
+Requires: 

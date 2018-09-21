@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/lty/catkin_ws/build/tool/autolabor_keyboard_control/devel/setup.sh

@@ -1,0 +1,8 @@
+prefix=/home/lty/catkin_ws/devel
+
+Name: ah100b
+Description: Description of ah100b
+Version: 0.1.0
+Cflags: 
+Libs: -L/home/lty/catkin_ws/devel/lib 
+Requires: 

@@ -1,0 +1,8 @@
+prefix=/home/lty/catkin_ws/devel
+
+Name: kinect2_registration
+Description: Description of kinect2_registration
+Version: 0.0.1
+Cflags: -I/home/lty/catkin_ws/src/driver/depth_camera/iai_kinect2-master/kinect2_registration/include
+Libs: -L/home/lty/catkin_ws/devel/lib -lkinect2_registration
+Requires: 

@@ -1,0 +1,8 @@
+prefix=/home/lty/catkin_ws/install
+
+Name: autolabor_simulation_base
+Description: Description of autolabor_simulation_base
+Version: 0.0.1
+Cflags: -I/home/lty/catkin_ws/install/include
+Libs: -L/home/lty/catkin_ws/install/lib 
+Requires: 

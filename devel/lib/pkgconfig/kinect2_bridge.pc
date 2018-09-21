@@ -1,0 +1,8 @@
+prefix=/home/lty/catkin_ws/devel
+
+Name: kinect2_bridge
+Description: Description of kinect2_bridge
+Version: 0.0.1
+Cflags: -I/home/lty/catkin_ws/src/driver/depth_camera/iai_kinect2-master/kinect2_bridge/include
+Libs: -L/home/lty/catkin_ws/devel/lib 
+Requires: kinect2_registration

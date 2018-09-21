@@ -1,0 +1,8 @@
+prefix=/home/lty/catkin_ws/devel
+
+Name: autolabor_keyboard_control
+Description: Description of autolabor_keyboard_control
+Version: 0.1.0
+Cflags: -I/home/lty/catkin_ws/src/tool/autolabor_keyboard_control/include
+Libs: -L/home/lty/catkin_ws/devel/lib 
+Requires: 

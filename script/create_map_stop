@@ -1,0 +1,28 @@
+#!/bin/bash
+
+cd ~/catkin_ws
+source devel/setup.bash
+roscd autolabor_box_launch/map
+
+filename_suffix=`date "+%Y%m%d%H%M%S"`
+if [ -e "real_map.pgm" ];then
+    mv real_map.pgm real_map$filename_suffix.pgm
+fi
+
+if [ -e "real_map.yaml" ];then
+    mv real_map.yaml real_map$filename_suffix.yaml
+fi
+
+if [ -e "show_map.pgm" ];then
+    mv show_map.pgm show_map$filename_suffix.pgm
+fi
+
+if [ -e "show_map.yaml" ];then
+    mv show_map.yaml show_map$filename_suffix.yaml
+fi
+
+rosrun map_server map_saver -f real_map
+cp real_map.pgm show_map.pgm
+cp real_map.yaml show_map.yaml
+sed -i 's/real_map/show_map/' show_map.yaml
+killall rosmaster
