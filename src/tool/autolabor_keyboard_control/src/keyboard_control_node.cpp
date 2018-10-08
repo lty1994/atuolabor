@@ -11,7 +11,7 @@
 namespace autolabor_tool{
 
 KeyboardControl::KeyboardControl():linear_state_(0), angular_state_(0), port_name_(""){
-  ros::NodeHandle private_node("~");
+  ros::NodeHandle private_node("~");//~是私有命名空间，传递配置参数
 
   private_node.param("linear_min", linear_min_, 0.2);
   private_node.param("linear_max", linear_max_, 2.0);
@@ -142,7 +142,7 @@ bool KeyboardControl::init(){//绑定键盘,获取输入到上下文,fd_
 
 void KeyboardControl::run(){
   if (init()){
-    twist_pub_ = nh_.advertise<geometry_msgs::Twist>("/cmd_vel", 10);//发布一个消息类型为std_msgs/Twist，命名为chatter的话题,队列大小为10
+    twist_pub_ = nh_.advertise<geometry_msgs::Twist>("/cmd_vel", 10);//发布一个消息类型为std_msgs/Twist，命名为/keyboard_control_node/cmd_vel的话题,队列大小为10
     //定时器:向话题定时发布消息
     twist_pub_timer_ = nh_.createTimer(ros::Duration(1.0/rate_), &KeyboardControl::twistCallback, this);
     boost::thread parse_thread(boost::bind(&KeyboardControl::parseKeyboard, this));//调用成员函数启动线程

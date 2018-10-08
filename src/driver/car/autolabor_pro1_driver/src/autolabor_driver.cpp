@@ -119,11 +119,11 @@ bool ChassisDriver::init(){
     return false;
   }
   // option settings...
-  port_->set_option(boost::asio::serial_port_base::baud_rate(baud_rate_));
-  port_->set_option(boost::asio::serial_port_base::character_size(8));
-  port_->set_option(boost::asio::serial_port_base::stop_bits(boost::asio::serial_port_base::stop_bits::one));
-  port_->set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::none));
-  port_->set_option(boost::asio::serial_port_base::flow_control(boost::asio::serial_port_base::flow_control::none));
+  port_->set_option(boost::asio::serial_port_base::baud_rate(baud_rate_));//比特率
+  port_->set_option(boost::asio::serial_port_base::character_size(8));//数据位
+  port_->set_option(boost::asio::serial_port_base::stop_bits(boost::asio::serial_port_base::stop_bits::one));//停止位
+  port_->set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::none));//奇偶校验
+  port_->set_option(boost::asio::serial_port_base::flow_control(boost::asio::serial_port_base::flow_control::none));//控制流量
   return true;
 }
 
@@ -142,16 +142,16 @@ void ChassisDriver::send_speed_callback(const ros::TimerEvent&){
 
   radio = std::max(std::max(std::abs(left_d), std::abs(right_d)) / maximum_encoding_, 1.0);
 
-  left = static_cast<short>(left_d / radio);
-  right = static_cast<short>(right_d / radio);
+  left = static_cast<short>(left_d / radio);//左轮轮速
+  right = static_cast<short>(right_d / radio);//右轮轮速
 
-  uint8_t data[14] = {0x55, 0xAA, 0x09, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-  data[3] = msg_seq_++;
+  uint8_t data[14] = {0x55, 0xAA, 0x09, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};//轮速控制指令
+  data[3] = msg_seq_++;//指令序号
   data[5] = (left >> 8) & 0xff;
   data[6] = left & 0xff;
   data[7] = (right >> 8) & 0xff;
   data[8] = right & 0xff;
-  check(data, 13, data[13]);
+  check(data, 13, data[13]);//异或校验
   boost::asio::write(*port_.get(), boost::asio::buffer(data, 14), ec_);
   ROS_DEBUG_STREAM("send -> left: " << left << "; right: " << right);
 }
@@ -215,7 +215,7 @@ void ChassisDriver::distribute_msg(uint8_t msg_type, uint8_t* buffer_data){
 }
 
 /////////////////
-/// 消息处理函数
+// 消息处理函数 //
 /////////////////
 
 void ChassisDriver::handle_current_msg(uint8_t *buffer_data){
@@ -236,7 +236,7 @@ void ChassisDriver::handle_battery_remainder_msg(uint8_t *buffer_data){
   battery_pub_.publish(battery);
 }
 
-void ChassisDriver::handle_speed_msg(uint8_t* buffer_data){
+void ChassisDriver::handle_speed_msg(uint8_t* buffer_data){//处理速度函数
   rev_left_ = buffer_data[5] * 256 + buffer_data[6];
   rev_right_ = buffer_data[7] * 256 + buffer_data[8];
 
@@ -328,19 +328,19 @@ void ChassisDriver::cal_pulse(int &current, int &receive, int &delta){
 void ChassisDriver::parse_msg(){
   uint8_t msg_type, payload_length, state, check_num, buffer_data[255];
   parse_flag_ = true;
-  while (parse_flag_){
+  while (parse_flag_){//解析控制指令
     switch(state){
     case 0:{ // header 1
       check_num = 0x00;
       boost::asio::read(*port_.get(), boost::asio::buffer(&buffer_data[0], 1), ec_);
-      state = buffer_data[0] == 0x55 ? 1 : 0;
+      state = buffer_data[0] == HEAD_1 ? 1 : 0;
       if (state == 0){
         ROS_DEBUG_STREAM("parse error 1 : ->" << (int)buffer_data[0]);
       }
       break;
     }case 1:{ // header 2
       boost::asio::read(*port_.get(), boost::asio::buffer(&buffer_data[1], 1), ec_);
-      state = buffer_data[1] == 0xAA ? 2 : 0;
+      state = buffer_data[1] == HEAD_2 ? 2 : 0;
       if (state == 0){
         ROS_DEBUG_STREAM("parse error 2 : ->" << (int)buffer_data[1]);
       }
@@ -379,6 +379,9 @@ void ChassisDriver::parse_msg(){
   }
 }
 
+/**
+*异或校验函数
+*/
 void ChassisDriver::check(uint8_t* data, size_t len, uint8_t& dest){
   dest = 0x00;
   for (int i=0; i<len; i++){
@@ -399,30 +402,33 @@ void ChassisDriver::run(){
   private_node.param<std::string>("base_frame", base_frame_, std::string("base_link"));
 
   private_node.param<int>("baud_rate", baud_rate_, 115200);
-  private_node.param<int>("control_rate", control_rate_, 10);
-  private_node.param<int>("sensor_rate", sensor_rate_, 5);
+  private_node.param<int>("control_rate", control_rate_, 10);//控制速度定时器频率
+  private_node.param<int>("sensor_rate", sensor_rate_, 5);//控制传感器定时器频率
 
   private_node.param<double>("reduction_ratio", reduction_ratio_, 2.5);
-  private_node.param<double>("encoder_resolution", encoder_resolution_, 1600.0);
-  private_node.param<double>("wheel_diameter", wheel_diameter_, 0.15);
+  private_node.param<double>("encoder_resolution", encoder_resolution_, 1600.0);//编码器转一圈产生的脉冲数
+  private_node.param<double>("wheel_diameter", wheel_diameter_, 0.15);//车轮直径
   private_node.param<double>("model_param", model_param_, 0.78);
-  private_node.param<double>("pid_rate", pid_rate_, 50.0);
+  private_node.param<double>("pid_rate", pid_rate_, 50.0);//PID调节PWM值的频率
 
   private_node.param<double>("maximum_encoding", maximum_encoding_, 32.0);
 
   // 速度1m/s的情况下每个控制周期的脉冲数
-  pulse_per_cycle_ = reduction_ratio_ * encoder_resolution_ / (M_PI * wheel_diameter_ * pid_rate_);
+  pulse_per_cycle_ = reduction_ratio_ * (encoder_resolution_ / M_PI * wheel_diameter_) / pid_rate_;
 
   if (init()){
+
     odom_pub_ = node.advertise<nav_msgs::Odometry>("wheel_odom", 10);
     battery_pub_ = node.advertise<std_msgs::Int32>("remaining_battery", 1);
     current_pub_ = node.advertise<std_msgs::Float32>("current", 1);
     voltage_pub_ = node.advertise<std_msgs::Float32>("voltage",1);
     ros::Subscriber cmd_sub = node.subscribe<geometry_msgs::Twist>("/cmd_vel", 10, &ChassisDriver::twist_callback, this);
+
     ros::Timer send_speed_timer = node.createTimer(ros::Duration(1.0/control_rate_), &ChassisDriver::send_speed_callback, this);
     ros::Timer ask_battery_remainder_timer = node.createTimer(ros::Duration(1.0/sensor_rate_), &ChassisDriver::ask_battery_remainder_callback, this);
     ros::Timer ask_current_timer = node.createTimer(ros::Duration(1.0/sensor_rate_), &ChassisDriver::ask_current_callback, this);
     ros::Timer ask_voltage_timer = node.createTimer(ros::Duration(1.0/sensor_rate_), &ChassisDriver::ask_voltage_callback, this);
+
     boost::thread parse_thread(boost::bind(&ChassisDriver::parse_msg, this));
     ros::spin();
     return;
